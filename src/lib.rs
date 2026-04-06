@@ -100,12 +100,8 @@ pub fn search_word<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
 
 // match only when entire line equals the pattern
 pub fn search_line<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
-    // Todo
-
-
-    results
+    let regex_result = String::from("^") + query + "$"; // anchors mean the line must exactly match query
+    search_regex(&regex_result, contents)
 }
 
 // returns all lines that do not match the patter
