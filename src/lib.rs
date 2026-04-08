@@ -2,21 +2,9 @@
 // minigrep — Library (Search Functions)
 // =============================================================================
 //
-// Core search logic for minigrep. All pattern matching and filtering
-// functions live here, separated from the binary for testability.
-//
-// CURRENT CAPABILITIES:
-//   - search(): case-sensitive substring matching, returns matching lines
-//   - search_case_insensitive(): lowercased substring matching
-//
-// FULL GREP SEARCH FUNCTIONS NEEDED (not yet implemented):
+// ======= TO BE IMPLEMENTED =======
 //
 //   Core Search Variants:
-//     - search_regex: match lines using a compiled regex pattern
-//     - search_fixed: literal/fixed-string match (no regex interpretation)
-//     - search_word: match only when pattern appears at word boundaries
-//     - search_line: match only when entire line equals the pattern
-//     - search_inverted: return lines that do NOT match the pattern
 //     - search_multi_pattern: accept a list of patterns, match any
 //
 //   Result Enrichment:
@@ -92,13 +80,10 @@ pub fn search_inverted<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a s
 }
 
 // accept a list of patterns, match any of them
-pub fn search_multi_pattern<'a> (query: Vec<&str>, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
-    // Todo
-
-
-    results
+// consider manually joining together to avoid the useless collect() heap allocation 
+pub fn search_multi_pattern<'a> (query: Vec<&str>, contents: &'a str) -> Vec<(usize, &'a str)> {
+    let regex_result = query.iter().map(|p| format!("({})",p)).collect::<Vec<_>>().join("|");
+    search_regex(&regex_result, contents)
 }
 
 
