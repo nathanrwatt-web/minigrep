@@ -48,6 +48,7 @@
 
 use regex::Regex;
 
+// consider just returning an iterator and handling iter in main
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     contents.lines().filter(|line| line.contains(query)).collect()
 
@@ -77,23 +78,23 @@ pub fn search_fixed<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
 }
 
 // match lines using a compiled regex pattern
-pub fn search_regex<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search_regex<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
     let re = Regex::new(query) // create new regex expression
         .expect("Invalid Regex Patter");
 
-    contents.lines() // turn into lines
-        .filter(|line| re.is_match(line)).collect() // filter by lines containing regex 
+    contents.lines().enumerate() // turn into lines
+        .filter(|(_, line)| re.is_match(line)).collect() // filter by lines containing regex 
 }
 
 // match when pattern apears at word boundaries 
-pub fn search_word<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search_word<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
     let regex_result = String::from("\\b") + query + "\\b"; // encase query in \b .. \b for word boundries in regex
     search_regex(&regex_result, contents)
 
 }
 
 // match only when entire line equals the pattern
-pub fn search_line<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search_line<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
     let regex_result = String::from("^") + query + "$"; // anchors mean the line must exactly match query
     search_regex(&regex_result, contents)
 }
