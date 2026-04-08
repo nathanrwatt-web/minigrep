@@ -85,11 +85,11 @@ fn run (config: Config) -> Result<(), Box<dyn Error>> {
     let results = if config.ignore_case {
         search_case_insensitive(&config.query, &contents)
     } else {
-        search(&config.query, &contents)
+        search_regex(&config.query, &contents)
     };
 
-    for line in results {
-        println!("{line}");
+    for (int, line) in results {
+        println!("{int}   {line}");
     }
     
     Ok(())
