@@ -48,33 +48,11 @@
 
 use regex::Regex;
 
-// consider just returning an iterator and handling iter in main
-pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    contents.lines().filter(|line| line.contains(query)).collect()
 
-}
-
-pub fn search_case_insensitive<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
-    let query = query.to_lowercase();
-    let mut results = Vec::new();
-
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-
-    results
-}
 
 // fixed string match
-pub fn search_fixed<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
-    // Todo
-
-
-    results
+pub fn search_fixed<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
+    contents.lines().enumerate().filter(|(_,line)| line.contains(query)).collect()
 }
 
 // match lines using a compiled regex pattern
@@ -85,6 +63,14 @@ pub fn search_regex<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)
     contents.lines().enumerate() // turn into lines
         .filter(|(_, line)| re.is_match(line)).collect() // filter by lines containing regex 
 }
+
+
+// in regex (?i)abc... ignores case of what follows 
+pub fn search_case_insensitive<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
+    let regex_result = String::from("(?i)") + query;
+    search_regex(&regex_result, contents)
+}
+
 
 // match when pattern apears at word boundaries 
 pub fn search_word<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
@@ -100,13 +86,9 @@ pub fn search_line<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)>
 }
 
 // returns all lines that do not match the patter
-pub fn search_inverted<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-
-    // Todo
-
-
-    results
+pub fn search_inverted<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
+    let regex_result = String::from("^(?!.*")  + query + ").*$";
+    search_regex(&regex_result, contents)
 }
 
 // accept a list of patterns, match any of them
@@ -126,27 +108,16 @@ mod tests {
     use super::*;
     
     #[test]
-    fn one_result() {
-        let query = "duct";
-        let contents = "\
-Rust: 
-safe, fast, productive.
-Pick three.";
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
+    fn fixed_string() {
+        let query = "ru.t";
+        let contents = "rust and what not\n runt of the litter\n    RuS. has been ever-made to\n ru.t should be returned";
+        assert_eq!(vec![(3usize," ru.t should be returned")], search_fixed(query, contents));
     }
 
     #[test]
     fn case_insensitive() {
-        let query = "rUsT";
-        let contents = "\
-Rust:
-safe, fast, productive.
-Pick three.
-Trust me.";
-        
-        assert_eq!(
-            vec!["Rust:", "Trust me."],
-            search_case_insensitive(query, contents)
-        );
+        let query = "hello";
+        let contents = "Hello, world!\nhEllo world, and then\n there was hell0";
+        assert_eq!(vec![(0usize, "Hello, world!"), (1usize, "hEllo world, and then")], search_case_insensitive(query, contents));
     }
 }
