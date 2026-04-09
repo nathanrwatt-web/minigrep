@@ -98,29 +98,90 @@ fn run (config: Config) -> Result<(), Box<dyn Error>> {
 
 
 // ----- helper functions ------
-pub struct Config {
-    pub query: String,
-    pub file_path: String,
-    pub ignore_case: bool,
 
+#[derive(Default)]
+pub struct Config {
+    pub queries: Vec<String>,
+    pub file_paths: Vec<String>,
+    pub fixed_string: bool,
+    pub whole_word: bool,
+    pub whole_line: bool,
+    pub case_insensitive: bool,
+    pub show_line_numbers: bool,
+    pub show_line_numbers_only: bool,
+    pub show_filenames_only: bool,
+    pub invert_match: bool,
+    pub quiet_mode: bool,
+    pub before_lines: Option<u32>, // if both are zero, do nothing
+    pub after_lines: Option<u32>,
+    pub byte_offset: bool,
+    pub only_matched_portion: bool,
+    pub recursive: bool,
+    pub count_mode: bool,  // if 0 ignore
+    pub max_count: Option<u32>,
+    pub multi_pattern: bool,
+    pub from_file: bool,
+    pub binary_skip: bool,
 }
+
 
 impl Config {
     fn build(mut args: impl Iterator<Item = String>, ) -> Result<Config, &'static str> {
         args.next(); // skip first item 
+        let mut config = Config::default();
 
-        let query = match args.next() {
-            Some(arg) => arg,
-            None => return Err("Didn't get a query string"),
-        };
+        while let Some(arg) = args.next() {
+            match arg.as_str() {
 
-        let file_path = match args.next() {
-            Some(arg) => arg,
-            None => return Err("Didn't get a file pathh"),
-        };
+                // check for things that requre something after them first
+                "-e" => { 
+                    let pattern = args.next().expect("-e requires a pattern"); 
+                    config.queries.push(pattern);
+                }
 
-        let ignore_case = env::var("IGNORE_CASE").is_ok();
+                // match count
+                "-m" => { 
+                    let num_matches = args.next().expect("-m requires a number of matches");
+                    config.max_count = Some(num_matches.parse().expect("invalid number"));
+                }
 
-        Ok(Config { query, file_path, ignore_case, })
+                // -A, -B, -C augment the surrounding lines shown
+                "-A" => {
+                    let lines_after = args.next().expect("-A requires a number of lines");
+                    config.after_lines = Some(lines_after.parse().expect("invalid number"));
+                }
+
+                "-B" => {
+                    let lines_before = args.next().expect("-B requires a number of lines");
+                    config.before_lines = Some(lines_before.parse().expect("invalid number"));
+                }
+                "-C" => {
+                    let lines = args.next().expect("-C requires a number of lines");
+                    let num = Some(lines.parse().expect("invalid number"));
+                    config.before_lines = num;
+                    config.after_lines = num;
+                }
+
+                "-F" => config.fixed_string = true,
+                "-w" => config.whole_word = true,
+                "-x" => config.whole_line = true,
+                "-n" => config.show_line_numbers = true,
+                "-c" => config.show_line_numbers_only = true,
+                "-l" => config.show_filenames_only = true,
+                "-i" => config.invert_match = true,
+                "-q" => config.quiet_mode = true,
+                "-b" => config.byte_offset = true,
+                "-o" => config.only_matched_portion = true,
+                "-r" => config.recursive = true,
+                "-R" => config.recursive = true,
+                "-L" => {config.show_filenames_only = true;  config.invert_match = true;},
+                
+                _ => {
+                    if config.queries.is_empty() { config.queries.push(arg); }
+                    else { config.file_paths.push(arg); }
+                }
+            }
+        } 
+        Ok(config)
     }
 }
