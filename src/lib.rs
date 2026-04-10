@@ -39,8 +39,8 @@ use regex::Regex;
 
 
 // fixed string match
-pub fn search_fixed<'a> (query: &str, contents: &'a str) -> Vec<(usize, &'a str)> {
-    contents.lines().enumerate().filter(|(_,line)| line.contains(query)).collect()
+pub fn search_fixed<'a> (query: &str, contents: &'a str, case_insensitive: bool) -> Vec<(usize, &'a str)> {
+    contents.lines().enumerate().filter( |(_, line)| line.contains(query)).collect()
 }
 
 // match lines using a compiled regex pattern
@@ -85,6 +85,7 @@ pub fn search_multi_pattern<'a> (query: Vec<&str>, contents: &'a str) -> Vec<(us
     let regex_result = query.iter().map(|p| format!("({})",p)).collect::<Vec<_>>().join("|");
     search_regex(&regex_result, contents)
 }
+
 
 
 

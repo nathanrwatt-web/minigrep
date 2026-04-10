@@ -16,7 +16,7 @@
 // FULL GREP FEATURE SET (not yet implemented):
 //
 //   Pattern Matching:
-//     - Regex support (basic and extended regular expressions)
+//     - Pattern support (basic and extended regular expressions)
 //     - Fixed-string matching (-F, literal match without regex)
 //     - Whole-word matching (-w, match only at word boundaries)
 //     - Whole-line matching (-x, entire line must match pattern)
@@ -77,21 +77,73 @@ fn main() {
     }
 }
 
+enum Matcher {
+        Fixed, 
+        Line, 
+        Word,
+        Pattern,
+    }
+
+struct MatcherPlan {
+    kind: Matcher,
+    case_insensitive: bool,
+    pattern: String,
+}
+
+use Matcher::{Fixed, Line, Word, Pattern};
 
 
 fn run (config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(config.file_path)?;
 
-    let results = if config.ignore_case {
-        search_case_insensitive(&config.query, &contents)
-    } else {
-        search_regex(&config.query, &contents)
+    let contents: Vec<String> = config.file_paths.iter().filter_map(|f| {
+        match fs::read_to_string(f) {
+            Ok(text) => Some(text),
+            Err(e) => {
+                eprintln!("{f}: {e}");
+                None
+            }
+        }
+        }).collect();
+
+    
+    
+    // determine search type
+    let info = MatcherPlan {
+        kind :  if config.fixed_string { Fixed }
+                else if config.whole_line { Line }
+                else if config.whole_word { Word }
+                else { Pattern },
+        case_insensitive : config.case_insensitive,
+
+        // pattern should be regex modified then passed
+        pattern : if config.queries.len() > 1 {
+            config.queries.iter().map(|p| format!("({p})")).collect::<Vec<_>>().join("|")
+        } else {
+            config.queries[0].clone() // need to check if exists
+        }
     };
 
-    for (int, line) in results {
-        println!("{int}   {line}");
+    // modify pattern for case_insensitivity
+    let pattern = if info.case_insensitive {
+        format!("(?i){}", info.pattern)
+    } else {
+        info.pattern.clone()
+    };
+
+    for content in &contents {
+        let results = match info.kind {
+            Fixed => search_fixed(info.pattern, content, info.case_insensitive),
+            Line  => search_line(&pattern, content),
+            Word  => search_word(&pattern, content),
+            Pattern => search_regex(&pattern, content),
+        };
+        
+        if config.show_line_numbers {
+            for (number, line) in results {
+                println!("{number}  {line}");
+            }
+        }
     }
-    
     Ok(())
 }
 
@@ -103,10 +155,10 @@ fn run (config: Config) -> Result<(), Box<dyn Error>> {
 pub struct Config {
     pub queries: Vec<String>,
     pub file_paths: Vec<String>,
-    pub fixed_string: bool,
-    pub whole_word: bool,
-    pub whole_line: bool,
-    pub case_insensitive: bool,
+    pub fixed_string: bool,             // -F
+    pub whole_word: bool,               // -w
+    pub whole_line: bool,               // -x 
+    pub case_insensitive: bool,         // 
     pub show_line_numbers: bool,
     pub show_line_numbers_only: bool,
     pub show_filenames_only: bool,
@@ -168,7 +220,8 @@ impl Config {
                 "-n" => config.show_line_numbers = true,
                 "-c" => config.show_line_numbers_only = true,
                 "-l" => config.show_filenames_only = true,
-                "-i" => config.invert_match = true,
+                "-i" => config.case_insensitive = true,
+                "-v" => config.invert_match = true,
                 "-q" => config.quiet_mode = true,
                 "-b" => config.byte_offset = true,
                 "-o" => config.only_matched_portion = true,
