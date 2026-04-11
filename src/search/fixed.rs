@@ -5,7 +5,6 @@
 // metacharacters interpreted. Backs the -F flag.
 // =============================================================================
 
-// fixed string match
 pub fn search_fixed<'a> (query: &str, contents: &'a str, case_insensitive: bool) -> Vec<(usize, &'a str)> {
     contents.lines().enumerate().filter( |(_, line)| line.contains(query)).collect()
 }
@@ -19,6 +18,6 @@ mod tests {
     fn fixed_string() {
         let query = "ru.t";
         let contents = "rust and what not\n runt of the litter\n    RuS. has been ever-made to\n ru.t should be returned";
-        assert_eq!(vec![(3usize," ru.t should be returned")], search_fixed(query, contents));
+        assert_eq!(vec![(3usize," ru.t should be returned")], search_fixed(query, contents, false));
     }
 }
