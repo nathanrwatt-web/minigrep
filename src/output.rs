@@ -9,3 +9,21 @@
 //
 //
 // ========= Todo ==========
+
+
+// takes in a filename, a vector of (linenumber: usize, line: string) and prints 
+pub fn print_results( file_name: &str, file_lines: Vec<(usize, &str)>, show_line_numbers : bool, ) {
+    println!("{file_name}");
+
+    if show_line_numbers {
+        for line in &file_lines {
+            println!("{}  {}", line.0, line.1);
+        }
+    } else {
+        for line in &file_lines {
+            println!("{}", line.1);
+        }
+    }
+}
+
+

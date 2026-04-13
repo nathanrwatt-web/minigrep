@@ -15,6 +15,7 @@ use crate::search::{
     search_fixed, search_regex, search_word, search_line,
 };
 use crate::input::load_sources;
+use crate::output::print_results;
 
 use Matcher::{Fixed, Line, Word, Pattern};
 
@@ -31,19 +32,16 @@ pub fn run (config: Config) -> Result<(), Box<dyn Error>> {
         info.pattern.clone()
     };
 
-    for (_, content) in &contents {
-        let results = match info.kind {
+    for (file_name, content) in &contents {
+        let results: Vec<(usize, &str)> = match info.kind {
             Fixed => search_fixed(&info.pattern, content, info.case_insensitive),
             Line  => search_line(&pattern, content),
             Word  => search_word(&pattern, content),
             Pattern => search_regex(&pattern, content),
         };
+        
+        print_results(file_name, results, config.show_line_numbers);
 
-        if config.show_line_numbers {
-            for (number, line) in results {
-                println!("{number}  {line}");
-            }
-        }
     }
     Ok(())
 }

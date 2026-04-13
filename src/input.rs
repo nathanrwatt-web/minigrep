@@ -14,6 +14,7 @@ use std::fs;
 use std::error::Error;
 
 // consider propogating errors
+// Returns a vector of tuples: (filename, filecontents)
 pub fn load_sources(config: &Config) -> Vec<(String, String)> {
     config.file_paths.iter().filter_map(|f| {
         match fs::read_to_string(f) {
