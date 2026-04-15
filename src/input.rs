@@ -27,11 +27,14 @@ pub fn load_sources(config: &Config) -> Vec<(String, String)> {
         }
     }).collect()
 }
-
 // read from stdin when no file paths are provided
 pub fn load_stdin() -> Vec<(String, String)> {
-    todo!()
+    let results: Vec<(String, String)> = vec![ ("stdin".to_string(),
+        io::read_to_string(io::stdin()).unwrap().expect("stdin not readable"))
+    ];
+    results 
 }
+
 pub fn load_recursive(config: &Config) -> Vec<(String, String)> {
     config.file_paths
         .iter()
