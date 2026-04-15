@@ -6,7 +6,18 @@
 // =============================================================================
 
 pub fn search_fixed<'a> (query: &str, contents: &'a str, case_insensitive: bool) -> Vec<(usize, &'a str)> {
-    contents.lines().enumerate().filter( |(_, line)| line.contains(query)).collect()
+    if case_insensitive {
+        contents.lines().enumerate()
+            .filter(|(_, line)| 
+                line.to_lowercase()
+                .contains(&query.to_lowercase()))
+            .collect()
+    }
+    else {
+        contents.lines().enumerate()
+            .filter( |(_, line)| line.contains(query))
+            .collect()
+    }
 }
 
 
