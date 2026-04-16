@@ -19,9 +19,12 @@ use crate::output::print_results;
 
 use Matcher::{Fixed, Line, Word, Pattern};
 
-pub fn run (config: Config) -> Result<(), Box<dyn Error>> {
+    
 
 
+pub fn run (config: Config) -> Result<bool, Box<dyn Error>> {
+
+    let mut matched: bool = false;
     let contents: Vec<(String,String)> = if config.recursive {
         load_recursive(&config)
     } else if config.file_paths.len() > 0 {
@@ -49,7 +52,9 @@ pub fn run (config: Config) -> Result<(), Box<dyn Error>> {
             Pattern => search_regex(&pattern, content),
         };
 
+        if results.len() > 0 { matched = true; }
+
         print_results(file_name, results, config.show_line_numbers);
     }
-    Ok(())
+    Ok(matched)
 }

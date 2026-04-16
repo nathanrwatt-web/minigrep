@@ -13,10 +13,14 @@ fn main() {
         eprintln!("Problem parsing arguments: {err}");
         process::exit(1);
     });
-
-    // catch errors by calling run 
-    if let Err(e) = run(config) {
-        eprintln!("Application error: {e}");
-        process::exit(1);
+    
+    let result: Result<bool, Box<dyn Error>> = run(config);
+    
+    match result {
+        Ok(value) => {
+            if value {process::exit(0);}
+            else {process::exit(1);}
+        },
+        Err(e) => process::exit(2);
     }
 }

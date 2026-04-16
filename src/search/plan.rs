@@ -48,3 +48,9 @@ impl MatcherPlan {
         }
     }
 }
+
+pub enum MatchOutcome {
+    Matched,
+    NotMatched,
+}
+
