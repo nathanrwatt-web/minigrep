@@ -8,7 +8,7 @@ pub struct Config {
     pub file_paths: Vec<String>,
     pub fixed_string: bool,             // -F
     pub whole_word: bool,               // -w
-    pub whole_line: bool,               // -x e
+    pub whole_line: bool,               // -x
     pub case_insensitive: bool,         //
     pub show_line_numbers: bool,        // -n
     pub show_line_numbers_only: bool,   // -c 

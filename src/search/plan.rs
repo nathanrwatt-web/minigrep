@@ -49,8 +49,39 @@ impl MatcherPlan {
     }
 }
 
-pub enum MatchOutcome {
-    Matched,
-    NotMatched,
+
+pub enum OutputMatcher {
+    LineNumbers,       // -c
+    Filenames,         // -l
+    Matched,           // -o
+    Quiet,             // -q
+    ByteOffset,        // -b
+    Line,              // default, print the line that matches
 }
 
+pub struct OutputMatcherPlan {
+    kind: OutputMatcher,
+    show_inverted: bool,
+    max_count: u32,
+}
+
+impl OutputMatcherPlan {
+
+    pub fn new(config: &Config) -> Self {
+        use OutputMatcher::*;
+
+        OutputMatcherPlan {
+            kind : if config.quiet_mode                     { Quiet }
+                   else if config.show_filenames_only       { Filenames }
+                   else if config.show_line_numbers_only    { Filenames }
+                   else if config.binary_skip               { ByteOffset }
+                   else if config.only_matched_portion      { Matched }
+                   else                                     { Line },
+             
+            show_inverted : config.invert_match,
+
+            max_count : config.max_count.unwrap(),
+        }
+    }
+
+}

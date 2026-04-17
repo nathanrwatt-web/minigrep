@@ -4,7 +4,7 @@
 
 use std::env;
 use std::process;
-
+use std::error::Error;
 use minigrep::{Config, run};
 
 fn main() {
@@ -21,6 +21,6 @@ fn main() {
             if value {process::exit(0);}
             else {process::exit(1);}
         },
-        Err(e) => process::exit(2);
+        Err(e) => process::exit(2),
     }
 }

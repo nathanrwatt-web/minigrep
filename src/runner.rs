@@ -43,6 +43,8 @@ pub fn run (config: Config) -> Result<bool, Box<dyn Error>> {
         info.pattern.clone()
     };
 
+    // match output 
+
     for (file_name, content) in &contents {
          
         let results: Vec<(usize, &str)> = match info.kind {
